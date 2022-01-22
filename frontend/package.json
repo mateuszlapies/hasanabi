@@ -9,6 +9,7 @@
     "mdb-react-ui-kit": "git+https://oauth2:HNMZDGdgSvat-hYttFmd@git.mdbootstrap.com/mdb/react/mdb5/prd/mdb5-react-ui-kit-pro-essential",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-router-dom": "^6.2.1",
     "react-scripts": "^5.0.0",
     "web-vitals": "^2.1.3"
   },
