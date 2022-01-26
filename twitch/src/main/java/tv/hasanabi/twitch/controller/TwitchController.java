@@ -10,12 +10,12 @@ import tv.hasanabi.twitch.nosql.repos.RepoActive;
 public class TwitchController {
     private final RepoActive repoActive;
 
-    public TwitchController(RepoActive repoActive) {
+    TwitchController(RepoActive repoActive) {
         this.repoActive = repoActive;
     }
 
     @GetMapping
-    public ResponseEntity<Active> IsActive() {
+    private ResponseEntity<Active> IsActive() {
         return ResponseEntity.ok(repoActive.getFirstByOrderByTimestampDesc());
     }
 }
