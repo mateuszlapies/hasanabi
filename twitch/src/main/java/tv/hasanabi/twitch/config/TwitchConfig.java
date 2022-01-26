@@ -24,24 +24,23 @@ public class TwitchConfig {
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private String token;
-    private Date expiresOn;
+    private TwitchToken token;
 
     @Bean
     WebClient twitchWebClient() {
-        if(token == null || expiresOn.before(Date.from(Instant.now()))) {
+        if(token == null || token.expiresOn.before(Date.from(Instant.now()))) {
             token = refreshToken().getBody();
         }
         return WebClient.builder()
                 .baseUrl("https://api.twitch.tv/helix/")
                 .defaultHeader("Client-Id", clientId)
-                .defaultHeader("Authorization", String.format("Bearer %s", token))
+                .defaultHeader("Authorization", String.format("Bearer %s", token.access_token))
                 .build();
     }
 
-    private ResponseEntity<String> refreshToken() {
+    private ResponseEntity<TwitchToken> refreshToken() {
         return WebClient.builder()
-                .build().post().uri(tokenUri + getVariables()).retrieve().toEntity(String.class).block();
+                .build().post().uri(tokenUri + getVariables()).retrieve().toEntity(TwitchToken.class).block();
     }
 
     private String getVariables() {
