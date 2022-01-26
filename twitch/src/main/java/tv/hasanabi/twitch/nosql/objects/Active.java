@@ -1,8 +1,8 @@
 package tv.hasanabi.twitch.nosql.objects;
 
+import org.springframework.data.annotation.Id;
 import tv.hasanabi.twitch.api.objects.Stream;
 
-import javax.persistence.Id;
 import java.time.Instant;
 import java.util.Date;
 
