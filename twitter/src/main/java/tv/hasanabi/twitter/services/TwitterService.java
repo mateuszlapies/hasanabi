@@ -33,12 +33,15 @@ public class TwitterService {
     @Scheduled(fixedRate = 10000)
     private void checkFeed() {
         Tweet tweet = repoTweet.findFirstByOrderByCreatedDesc();
-        Data<Feed[]> feed = webClient.get().uri(String.format("users/%s/tweets?since_id=%s&exclude=replies,retweets&tweet.fields=public_metrics,created_at&expansions=attachments.poll_ids,attachments.media_keys",
-                        user.id, tweet.id))
-                .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed[]>>() {}).block();
-        if(feed != null && feed.data != null && feed.data.length > 0) {
-            for (Feed f : feed.data) {
-                repoTweet.save(new Tweet(f));
+        if(tweet != null) {
+            Data<Feed[]> feed = webClient.get().uri(String.format("users/%s/tweets?since_id=%s&exclude=replies,retweets&tweet.fields=public_metrics,created_at&expansions=attachments.poll_ids,attachments.media_keys",
+                            user.id, tweet.id))
+                    .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed[]>>() {
+                    }).block();
+            if (feed != null && feed.data != null && feed.data.length > 0) {
+                for (Feed f : feed.data) {
+                    repoTweet.save(new Tweet(f));
+                }
             }
         }
     }
