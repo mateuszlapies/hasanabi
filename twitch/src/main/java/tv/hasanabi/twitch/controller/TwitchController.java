@@ -16,6 +16,6 @@ public class TwitchController {
 
     @GetMapping
     public ResponseEntity<Active> IsActive() {
-        return ResponseEntity.ok(repoActive.getFirstByOrderByTimestamp());
+        return ResponseEntity.ok(repoActive.getFirstByOrderByTimestampDesc());
     }
 }

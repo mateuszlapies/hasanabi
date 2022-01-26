@@ -30,10 +30,10 @@ public class TwitchService {
 
     @Scheduled(fixedRate = 10000)
     private void updateHasanStatus() {
-        Stream stream = webClient.get()
+        Stream stream = Objects.requireNonNull(webClient.get()
                 .uri("streams?user_id=" + hasanProfile.id)
                 .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Stream>>() {
-                }).block().getElement();
+                }).block()).getElement();
         repoActive.save(new Active(stream));
     }
 }
