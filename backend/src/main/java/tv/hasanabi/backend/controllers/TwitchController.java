@@ -13,7 +13,7 @@ import tv.hasanabi.backend.nosql.repos.twitch.RepoActive;
 
 @RestController()
 @RequestMapping("twitch")
-@CrossOrigin(origins = {"http://localhost", "http://localhost:3000", "https://hasanabi.tv"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://localhost", "https://hasanabi.tv"})
 public class TwitchController {
     private final WebClient webClient;
     private final RepoActive repoActive;
