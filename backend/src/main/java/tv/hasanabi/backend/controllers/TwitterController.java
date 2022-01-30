@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @RestController()
 @RequestMapping("twitter")
-@CrossOrigin(origins = {"http://localhost:3000", "https://hasanabi.tv"})
+@CrossOrigin(origins = {"http://localhost", "http://localhost:3000", "https://hasanabi.tv"})
 public class TwitterController {
     private final WebClient webClient;
     private final RepoRatio repoRatio;
