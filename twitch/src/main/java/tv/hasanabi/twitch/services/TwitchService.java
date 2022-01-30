@@ -16,12 +16,12 @@ import tv.hasanabi.twitch.api.objects.Stream;
 @Service
 public class TwitchService {
     private final WebClient webClient;
-    private final Profile hasanProfile;
+    public static Profile hasanProfile;
     private final RepoActive repoActive;
 
     TwitchService(WebClient webClient, RepoActive repoActive) {
         this.webClient = webClient;
-        this.hasanProfile = Objects.requireNonNull(webClient.get()
+        hasanProfile = Objects.requireNonNull(webClient.get()
                 .uri("users?login=hasanabi")
                 .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Profile>>() {
                 }).block()).getElement();
