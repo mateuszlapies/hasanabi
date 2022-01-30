@@ -1,11 +1,85 @@
+html {
+  height: 100vh;
+}
+
 body {
+  height: 100vh;
   margin: 0;
   font-family: Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+#root {
+  height: 100vh;
+}
+
+#body {
+  min-height: 100vh;
+}
+
+#background {
+  width: 100%;
+  min-height: 100%;
+  position: fixed;
+  z-index: -1;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.header {
+  width: 100%;
+  position: fixed !important;
+  z-index: 99;
+}
+
+.content {
+  padding: 4rem 1rem 1rem;
+  background: white;
+}
+
+.twitch-icon {
+  color: #A970FF;
+}
+
+.twitter-icon {
+  color: #55ACEE;
+}
+
+.instagram-icon {
+  color: #AC2BAC;
+}
+
+.border-bottom-dark {
+  border-bottom: 2px solid #757575 !important;
+}
+
+.twitch {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.collapse-el {
+  height: fit-content;
+}
+
+.row-el {
+  padding-top: calc(var(--mdb-gutter-x) * 0.25);
+  padding-bottom: calc(var(--mdb-gutter-x) * 0.25);
+}
+
+.col-el {
+  padding-left: calc(var(--mdb-gutter-x) * 0.25) !important;
+  padding-right: calc(var(--mdb-gutter-x) * 0.25) !important;
+}
+
+.card-el {
+  width: 100%;
+}
+
+.tweet-body {
+  padding: 1rem;
 }

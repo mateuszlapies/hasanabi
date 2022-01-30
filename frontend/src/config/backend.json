@@ -1,0 +1,12 @@
+{
+  "prod": {
+    "twitch": "https://hasanabi.tv/bighas-backend/twitch/",
+    "twitter": "https://hasanabi.tv/bighas-backend/twitter/",
+    "instagram": "https://hasanabi.tv/bighas-backend/"
+  },
+  "dev": {
+    "twitch": "http://localhost:8762/bighas-backend/twitch/",
+    "twitter": "http://localhost:8762/bighas-backend/twitter/",
+    "instagram": "http://localhost:8762/bighas-backend/"
+  }
+}
