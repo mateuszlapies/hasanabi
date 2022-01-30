@@ -7,6 +7,8 @@ public class Feed {
     public String id;
     public String text;
     public Date created_at;
+    public String author_id;
+    public Entities entities;
     public Attachment attachments;
     public Public public_metrics;
     public String referenced_tweet;
@@ -17,6 +19,8 @@ public class Feed {
     public Feed(Feed feed) {
         this.id = feed.id;
         this.text = feed.text;
+        this.entities = feed.entities;
+        this.author_id = feed.author_id;
         this.created_at = feed.created_at;
         this.attachments = feed.attachments;
         this.public_metrics = feed.public_metrics;

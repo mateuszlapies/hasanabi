@@ -9,9 +9,13 @@ import tv.hasanabi.twitter.api.objects.Feed;
 import tv.hasanabi.twitter.api.objects.User;
 import tv.hasanabi.twitter.nosql.objects.Ratio;
 import tv.hasanabi.twitter.nosql.objects.Tweet;
+import tv.hasanabi.twitter.nosql.repos.RepoOwned;
 import tv.hasanabi.twitter.nosql.repos.RepoRatio;
 import tv.hasanabi.twitter.nosql.repos.RepoTweet;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -19,23 +23,38 @@ public class TwitterService {
     private final User user;
     private final RepoTweet repoTweet;
     private final RepoRatio repoRatio;
+    private final RepoOwned repoOwned;
     private final WebClient webClient;
+    private final DateTimeFormatter formatter;
 
-    TwitterService(RepoTweet repoTweet, RepoRatio repoRatio, WebClient webClient) {
+    TwitterService(RepoTweet repoTweet, RepoRatio repoRatio, RepoOwned repoOwned, WebClient webClient) {
         this.repoTweet = repoTweet;
         this.repoRatio = repoRatio;
+        this.repoOwned = repoOwned;
         this.webClient = webClient;
+
+        formatter = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+            .withZone(ZoneId.of("UTC"));
+
         this.user = Objects.requireNonNull(webClient.get().uri("users/by/username/hasanthehun?user.fields=created_at,description,profile_image_url,url")
                 .retrieve().bodyToMono(new ParameterizedTypeReference<Data<User>>() {
                 }).block()).data;
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 30000)
     private void checkFeed() {
         Tweet tweet = repoTweet.findFirstByOrderByCreatedDesc();
-        if(tweet != null) {
-            Data<Feed[]> feed = webClient.get().uri(String.format("users/%s/tweets?since_id=%s&exclude=replies,retweets&tweet.fields=public_metrics,created_at&expansions=attachments.poll_ids,attachments.media_keys",
-                            user.id, tweet.id))
+        String query = "";
+        if(tweet != null)
+            query = String.format("&start_time=%s", formatter.format(tweet.created_at.toInstant().minusSeconds(60)));
+        Data<Feed[]> feed = null;
+        do {
+            String next_token = "";
+            if(feed != null)
+                next_token = feed.meta != null ? String.format("&pagination_token=%s", feed.meta.next_token) : "";
+            feed = webClient.get().uri(String.format("users/%s/tweets?exclude=replies,retweets&tweet.fields=public_metrics,created_at,entities&expansions=author_id,attachments.media_keys%s%s",
+                    user.id, query, next_token))
                     .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed[]>>() {
                     }).block();
             if (feed != null && feed.data != null && feed.data.length > 0) {
@@ -43,48 +62,94 @@ public class TwitterService {
                     repoTweet.save(new Tweet(f));
                 }
             }
-        }
+        } while (feed.meta.next_token != null);
     }
 
-    @Scheduled(fixedRate = 86400000)
+    @Scheduled(fixedRate = 86400000, initialDelay = 5000)
     private void ratio() {
         List<Feed> feedList = new ArrayList<>();
         Data<List<Feed>> ratios = new Data<>();
+        List<String> ratioedIds = new ArrayList<>();
         do {
             String next_token = ratios.meta != null ? String.format("&next_token=%s", ratios.meta.next_token) : "";
-            ratios = Objects.requireNonNull(webClient.get().uri("tweets/search/recent?query=ratio (from:hasanthehun OR to:hasanthehun)&tweet.fields=public_metrics,created_at,referenced_tweets" + next_token)
+            ratios = Objects.requireNonNull(webClient.get().uri(String.format("tweets/search/recent?query=ratio -ratio'd from:hasanthehun -to:hasanthehun is:reply" +
+                            "&max_results=100&expansions=author_id&tweet.fields=public_metrics,created_at,referenced_tweets&start_time=%s%s", formatter.format(Instant.now().minusSeconds(86400)), next_token))
                     .retrieve().bodyToMono(new ParameterizedTypeReference<Data<List<Feed>>>() {
                     }).block());
-            feedList.addAll(ratios.data);
+            if(ratios.meta.result_count > 0) {
+                feedList.addAll(ratios.data);
+                ratios.data.forEach(i -> {
+                    if (i.referenced_tweet != null && !ratioedIds.contains(i.referenced_tweet)) {
+                        ratioedIds.add(i.referenced_tweet);
+                    }
+                });
+            }
         } while(ratios.meta.next_token != null);
-        Hashtable<String, Feed> referenced = new Hashtable<>();
-        for(Feed feed : feedList) {
-            if(feed.referenced_tweet != null && !referenced.containsKey(feed.referenced_tweet))
-                referenced.put(feed.referenced_tweet, new Feed());
-        }
-        Feed[] references = tweetsDetails(String.join(",", referenced.keySet()));
-        for(Feed feed : references) {
-            referenced.put(feed.id, feed);
-        }
-        for(Feed f : feedList) {
-            if(f.referenced_tweet != null && referenced.containsKey(f.referenced_tweet) && referenced.get(f.referenced_tweet).public_metrics != null) {
-                float ratio = f.public_metrics.like_count / referenced.get(f.referenced_tweet).public_metrics.like_count;
-                float reversed_ratio = 1 / ratio;
-                if (ratio >= 0.25f || reversed_ratio >= 0.25f && !Float.isInfinite(ratio) && !Float.isInfinite(reversed_ratio))
-                    repoRatio.save(new Ratio(f, referenced.get(f.referenced_tweet)));
+        if(ratioedIds.size() > 0) {
+            Hashtable<String, Feed> referenced = getTweets(ratioedIds);
+            for (Feed feed : feedList) {
+                if (feed.referenced_tweet != null) {
+                    repoRatio.save(new Ratio(feed, referenced.get(feed.referenced_tweet)));
+                }
             }
         }
     }
 
-    private Feed tweetDetails(String id) {
-        return Objects.requireNonNull(webClient.get().uri(String.format("tweets/%s?tweet.fields=public_metrics,created_at&expansions=attachments.poll_ids,attachments.media_keys", id))
-                .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed>>() {
-                }).block()).data;
+    @Scheduled(fixedRate = 86400000, initialDelay = 10000)
+    private void owned() {
+        List<Feed> feedList = new ArrayList<>();
+        Data<List<Feed>> owning = new Data<>();
+        List<String> ownedIds = new ArrayList<>();
+        do {
+            String next_token = owning.meta != null ? String.format("&next_token=%s", owning.meta.next_token) : "";
+
+            owning = Objects.requireNonNull(webClient.get().uri(String.format("tweets/search/recent?query=-ratio from:hasanthehun -to:hasanthehun is:reply" +
+                            "&max_results=100&expansions=author_id&tweet.fields=public_metrics,created_at,referenced_tweets&start_time=%s%s", formatter.format(Instant.now().minusSeconds(86400)), next_token))
+                    .retrieve().bodyToMono(new ParameterizedTypeReference<Data<List<Feed>>>() {
+                    }).block());
+            if(owning.meta.result_count > 0) {
+                feedList.addAll(owning.data);
+                owning.data.forEach(i -> {
+                    if (i.referenced_tweet != null && !ownedIds.contains(i.referenced_tweet)) {
+                        ownedIds.add(i.referenced_tweet);
+                    }
+                });
+            }
+        } while(owning.meta.next_token != null);
+        if(ownedIds.size() > 0) {
+            Hashtable<String, Feed> referenced = getTweets(ownedIds);
+            for (Feed feed : feedList) {
+                if (feed.referenced_tweet != null) {
+                    repoOwned.save(new Ratio(feed, referenced.get(feed.referenced_tweet)));
+                }
+            }
+        }
     }
 
-    private Feed[] tweetsDetails(String ids) {
-        return Objects.requireNonNull(webClient.get().uri(String.format("tweets?ids=%s&tweet.fields=public_metrics,created_at&expansions=attachments.poll_ids,attachments.media_keys", ids))
-                .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed[]>>() {
+    private Hashtable<String, Feed> getTweets(List<String> ids) {
+        Hashtable<String, Feed> tweets = new Hashtable<>();
+        StringBuilder ids_str = new StringBuilder();
+        for(int i = 0; i < ids.size(); i++) {
+            if(i != 0 && i % 100 == 0) {
+                ids_str = new StringBuilder(ids_str.substring(0, ids_str.length() - 2));
+                tweetsDetails(ids_str.toString()).forEach(e -> {
+                    if(!tweets.containsKey(e.id)) {tweets.put(e.id, e);}
+                });
+                ids_str = new StringBuilder(ids.get(i));
+            } else {
+                ids_str.append(ids.get(i)).append(",");
+            }
+        }
+        ids_str = new StringBuilder(ids_str.substring(0, ids_str.length() - 2));
+        tweetsDetails(ids_str.toString()).forEach(e -> {
+            if(!tweets.containsKey(e.id)) {tweets.put(e.id, e);}
+        });
+        return tweets;
+    }
+
+    private List<Feed> tweetsDetails(String ids) {
+        return Objects.requireNonNull(webClient.get().uri(String.format("tweets?ids=%s&user.fields=name,profile_image_url,verified&tweet.fields=public_metrics,created_at&expansions=attachments.poll_ids,attachments.media_keys", ids))
+                .retrieve().bodyToMono(new ParameterizedTypeReference<Data<List<Feed>>>() {
                 }).block()).data;
     }
 }
