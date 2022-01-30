@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TwitterService {
@@ -128,19 +129,20 @@ public class TwitterService {
 
     private Hashtable<String, Feed> getTweets(List<String> ids) {
         Hashtable<String, Feed> tweets = new Hashtable<>();
+        List<String> filtered = ids.stream().distinct().collect(Collectors.toList());
         StringBuilder ids_str = new StringBuilder();
-        for(int i = 0; i < ids.size(); i++) {
-            if(i != 0 && i % 100 == 0) {
-                ids_str = new StringBuilder(ids_str.substring(0, ids_str.length() - 2));
+        for(int i = 0; i < filtered.size(); i++) {
+            if(i != 0 && i % 99 == 0) {
+                ids_str.append(filtered.get(i));
                 tweetsDetails(ids_str.toString()).forEach(e -> {
                     if(!tweets.containsKey(e.id)) {tweets.put(e.id, e);}
                 });
-                ids_str = new StringBuilder(ids.get(i));
+                ids_str = new StringBuilder();
             } else {
-                ids_str.append(ids.get(i)).append(",");
+                ids_str.append(filtered.get(i)).append(",");
             }
         }
-        ids_str = new StringBuilder(ids_str.substring(0, ids_str.length() - 2));
+        ids_str = new StringBuilder(ids_str.substring(0, ids_str.length() - 1));
         tweetsDetails(ids_str.toString()).forEach(e -> {
             if(!tweets.containsKey(e.id)) {tweets.put(e.id, e);}
         });
@@ -148,7 +150,9 @@ public class TwitterService {
     }
 
     private List<Feed> tweetsDetails(String ids) {
-        return Objects.requireNonNull(webClient.get().uri(String.format("tweets?ids=%s&user.fields=name,profile_image_url,verified&tweet.fields=public_metrics,created_at&expansions=attachments.poll_ids,attachments.media_keys", ids))
+        return Objects.requireNonNull(webClient.get().uri(String.format(
+                "tweets?ids=%s&user.fields=name,profile_image_url,verified&tweet.fields=public_metrics,created_at" +
+                        "&expansions=attachments.poll_ids,attachments.media_keys", ids))
                 .retrieve().bodyToMono(new ParameterizedTypeReference<Data<List<Feed>>>() {
                 }).block()).data;
     }
