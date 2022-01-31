@@ -12,24 +12,21 @@ export default function BTweet(props) {
                 .then(j => setMedia(j))
     }, [props])
 
-    let flatMap = (array, fn) => {
-        let result = [];
-        for (let i = 0; i < array.length - 1; i++) {
-            let mapping = fn(array[i]);
-            result = result.concat(mapping);
-        }
-        return result;
-    }
-
     let fixText = (tweet) => {
-        let text = tweet.text;
-        if(text) {
-            if(tweet.entities && tweet.entities.urls) {
-                tweet.entities.urls.forEach((i, index) =>
-                    text = flatMap(text.split(i.url), (p) => [p, <a key={index} rel='opener' target='_blank' href={i.display_url}>{i.display_url}</a>]))
-            }
+        if(tweet.entities && tweet.entities.urls) {
+            let arr = [tweet.text];
+            tweet.entities.urls.forEach((i, index) => {
+                let temp = arr[arr.length - 1].split(i.url);
+                arr.pop();
+                arr.push(temp[0]);
+                if(i.display_url.indexOf("pic.twitter.com") < 0) {
+                    arr.push(<a key={index} href={i.url} target="_blank" rel="noopener noreferrer">{i.display_url}</a>);
+                }
+                arr.push(temp[1]);
+            });
+            return arr;
         }
-        return text;
+        return tweet.text;
     }
 
     return (

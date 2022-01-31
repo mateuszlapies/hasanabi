@@ -83,3 +83,7 @@ code {
 .tweet-body {
   padding: 1rem;
 }
+
+.tweet-public {
+  padding-top: 1rem;
+}

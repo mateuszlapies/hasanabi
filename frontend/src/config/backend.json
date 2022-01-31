@@ -4,6 +4,11 @@
     "twitter": "https://hasanabi.tv/bighas-backend/twitter/",
     "instagram": "https://hasanabi.tv/bighas-backend/"
   },
+  "stage": {
+    "twitch": "https://localhost/bighas-backend/twitch/",
+    "twitter": "https://localhost/bighas-backend/twitter/",
+    "instagram": "https://hasanabi.tv/bighas-backend/"
+  },
   "dev": {
     "twitch": "http://localhost:8762/bighas-backend/twitch/",
     "twitter": "http://localhost:8762/bighas-backend/twitter/",
