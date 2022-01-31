@@ -67,7 +67,7 @@ public class TwitterService {
     }
 
     @Scheduled(fixedRate = 86400000, initialDelay = 5000)
-    private void ratio() {
+    private void ratio() throws InterruptedException {
         List<Feed> feedList = new ArrayList<>();
         Data<List<Feed>> ratios = new Data<>();
         List<String> ratioedIds = new ArrayList<>();
@@ -85,6 +85,7 @@ public class TwitterService {
                     }
                 });
             }
+            Thread.sleep(1000);
         } while(ratios.meta.next_token != null);
         if(ratioedIds.size() > 0) {
             Hashtable<String, Feed> referenced = getTweets(ratioedIds);
@@ -96,8 +97,8 @@ public class TwitterService {
         }
     }
 
-    @Scheduled(fixedRate = 86400000, initialDelay = 10000)
-    private void owned() {
+    //@Scheduled(fixedRate = 86400000, initialDelay = 10000)
+    private void owned() throws InterruptedException {
         List<Feed> feedList = new ArrayList<>();
         Data<List<Feed>> owning = new Data<>();
         List<String> ownedIds = new ArrayList<>();
@@ -116,6 +117,7 @@ public class TwitterService {
                     }
                 });
             }
+            Thread.sleep(1000);
         } while(owning.meta.next_token != null);
         if(ownedIds.size() > 0) {
             Hashtable<String, Feed> referenced = getTweets(ownedIds);
