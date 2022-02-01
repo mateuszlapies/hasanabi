@@ -43,21 +43,26 @@ public class TwitterService {
                 }).block()).data;
     }
 
+    @Scheduled(fixedRate = 30000, fixedDelay = 30000)
+    private void updateCurrent() {
+        Tweet tweet = repoTweet.findFirstByOrderByCreatedDesc();
+        tweet = new Tweet(Objects.requireNonNull(webClient.get().uri(
+                String.format("tweets/%s?exclude=replies,retweets&tweet.fields=public_metrics,created_at,entities&expansions=author_id,attachments.media_keys", tweet.id))
+                .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed>>() {}).block()).data);
+        repoTweet.save(tweet);
+    }
+
     @Scheduled(fixedRate = 30000)
     private void checkFeed() {
         Tweet tweet = repoTweet.findFirstByOrderByCreatedDesc();
-        String query = "";
-        if(tweet != null)
-            query = String.format("&start_time=%s", formatter.format(tweet.created_at.toInstant().minusSeconds(60)));
         Data<Feed[]> feed = null;
         do {
             String next_token = "";
             if(feed != null)
                 next_token = feed.meta != null ? String.format("&pagination_token=%s", feed.meta.next_token) : "";
-            feed = webClient.get().uri(String.format("users/%s/tweets?exclude=replies,retweets&tweet.fields=public_metrics,created_at,entities&expansions=author_id,attachments.media_keys%s%s",
-                    user.id, query, next_token))
-                    .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed[]>>() {
-                    }).block();
+            feed = webClient.get().uri(String.format("users/%s/tweets?exclude=replies,retweets&tweet.fields=public_metrics,created_at,entities&expansions=author_id,attachments.media_keys&since_id=%s%s",
+                    user.id, tweet.id, next_token))
+                    .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed[]>>() {}).block();
             if (feed != null && feed.data != null && feed.data.length > 0) {
                 for (Feed f : feed.data) {
                     repoTweet.save(new Tweet(f));
