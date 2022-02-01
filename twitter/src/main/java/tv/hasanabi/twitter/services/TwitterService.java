@@ -43,7 +43,7 @@ public class TwitterService {
                 }).block()).data;
     }
 
-    @Scheduled(fixedRate = 30000, fixedDelay = 30000)
+    @Scheduled(fixedRate = 30000, initialDelay = 30000)
     private void updateCurrent() {
         Tweet tweet = repoTweet.findFirstByOrderByCreatedDesc();
         tweet = new Tweet(Objects.requireNonNull(webClient.get().uri(
