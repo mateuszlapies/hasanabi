@@ -58,10 +58,13 @@ public class TwitterService {
         Data<Feed[]> feed = null;
         do {
             String next_token = "";
+            String since_id = "";
+            if(tweet != null)
+                since_id = tweet.id != null ? String.format("&since_id=%s", tweet.id) : "";
             if(feed != null)
                 next_token = feed.meta != null ? String.format("&pagination_token=%s", feed.meta.next_token) : "";
-            feed = webClient.get().uri(String.format("users/%s/tweets?exclude=replies,retweets&tweet.fields=public_metrics,created_at,entities&expansions=author_id,attachments.media_keys&since_id=%s%s",
-                    user.id, tweet.id, next_token))
+            feed = webClient.get().uri(String.format("users/%s/tweets?exclude=replies,retweets&tweet.fields=public_metrics,created_at,entities&expansions=author_id,attachments.media_keys%s%s",
+                    user.id, since_id, next_token))
                     .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed[]>>() {}).block();
             if (feed != null && feed.data != null && feed.data.length > 0) {
                 for (Feed f : feed.data) {
@@ -71,7 +74,7 @@ public class TwitterService {
         } while (feed.meta.next_token != null);
     }
 
-    @Scheduled(fixedRate = 86400000, initialDelay = 5000)
+    //@Scheduled(fixedRate = 86400000, initialDelay = 5000)
     private void ratio() throws InterruptedException {
         List<Feed> feedList = new ArrayList<>();
         Data<List<Feed>> ratios = new Data<>();
