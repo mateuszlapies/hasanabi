@@ -47,7 +47,7 @@ public class TwitterService {
     private void updateCurrent() {
         Tweet tweet = repoTweet.findFirstByOrderByCreatedDesc();
         tweet = new Tweet(Objects.requireNonNull(webClient.get().uri(
-                String.format("tweets/%s?exclude=replies,retweets&tweet.fields=public_metrics,created_at,entities&expansions=author_id,attachments.media_keys", tweet.id))
+                String.format("tweets/%s?tweet.fields=public_metrics,created_at,entities&expansions=author_id,attachments.media_keys", tweet.id))
                 .retrieve().bodyToMono(new ParameterizedTypeReference<Data<Feed>>() {}).block()).data);
         repoTweet.save(tweet);
     }
