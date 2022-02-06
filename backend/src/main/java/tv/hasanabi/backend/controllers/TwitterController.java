@@ -2,6 +2,9 @@ package tv.hasanabi.backend.controllers;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -42,8 +45,9 @@ public class TwitterController {
     }
 
     @GetMapping("tweets")
-    public ResponseEntity<List<Tweet>> getTweets() {
-        return ResponseEntity.ok(repoTweet.findAll());
+    public ResponseEntity<Page<Tweet>> getTweets(@RequestParam Integer page) {
+        Pageable pageable = PageRequest.of(page, 10);
+        return ResponseEntity.ok(repoTweet.findAll(pageable));
     }
 
     @GetMapping("latest")
