@@ -48,7 +48,7 @@ public class TwitterController {
 
     @GetMapping("latest")
     public ResponseEntity<Tweet> getLatest() {
-        return ResponseEntity.ok(repoTweet.findFirstByOrderByCreatedDesc());
+        return ResponseEntity.ok(repoTweet.findFirstByOrderByIdDesc());
     }
 
     @GetMapping("profile/{id}")

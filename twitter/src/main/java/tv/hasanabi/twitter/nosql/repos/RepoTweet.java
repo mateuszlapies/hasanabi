@@ -6,5 +6,5 @@ import tv.hasanabi.twitter.nosql.objects.Tweet;
 
 @Document(collection = "tweet")
 public interface RepoTweet extends MongoRepository<Tweet, String> {
-    Tweet findFirstByOrderByCreatedDesc();
+    Tweet findFirstByOrderByIdDesc();
 }

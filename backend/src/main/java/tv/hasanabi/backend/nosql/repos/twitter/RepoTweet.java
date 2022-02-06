@@ -1,8 +1,9 @@
 package tv.hasanabi.backend.nosql.repos.twitter;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import tv.hasanabi.backend.nosql.objects.twitter.Tweet;
 
 public interface RepoTweet extends MongoRepository<Tweet, String> {
-    Tweet findFirstByOrderByCreatedDesc();
+    Tweet findFirstByOrderByIdDesc();
 }

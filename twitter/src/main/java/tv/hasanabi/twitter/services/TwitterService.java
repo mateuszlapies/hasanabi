@@ -46,7 +46,7 @@ public class TwitterService {
 
     @Scheduled(fixedRate = 30000)
     private void checkFeed() {
-        Tweet tweet = repoTweet.findFirstByOrderByCreatedDesc();
+        Tweet tweet = repoTweet.findFirstByOrderByIdDesc();
         Data<Feed[]> feed = new Data<>();
         do {
             String next_token = "";
