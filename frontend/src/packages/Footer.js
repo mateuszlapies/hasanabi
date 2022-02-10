@@ -4,7 +4,7 @@ export default function Footer() {
     return (
         <MDBFooter bgColor='dark' className='text-center text-lg-start'>
             <section className='d-flex justify-content-center justify-content-lg-between p-3 border-bottom-dark'>
-                <div className='container text-center text-md-start'>
+                <div className='container text-center text-md-start text-white'>
                     <div className='row mt-3'>
                         <div className='col-md-3 col-lg-4 col-xl-3 mx-auto mb-4'>
                             <h6 className='text-uppercase fw-bold mb-4'>
@@ -51,7 +51,7 @@ export default function Footer() {
                         <div className='col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4'>
                             <h6 className='text-uppercase fw-bold mb-4'>Contact</h6>
                             <p>
-                                <i className='fas fa-envelope me-2'/>Hasan's business email
+                                <MDBIcon far icon="envelope" className="me-2"/>Hasan's business email
                             </p>
                             <p>
                                 <a href='mailto:hasanpiker@wmeagency.com' className='text-reset'>
@@ -59,7 +59,7 @@ export default function Footer() {
                                 </a>
                             </p>
                             <p>
-                                <i className='fas fa-envelope me-2'/>Fan page email
+                                <MDBIcon far icon="envelope" className="me-2"/>Fan page email
                             </p>
                             <p>
                                 <a href='mailto:contact@hasanabi.tv' className='text-reset'>
@@ -72,7 +72,7 @@ export default function Footer() {
             </section>
 
             <div className='text-center p-4' style={{ backgroundColor: 'rgba(0, 0, 0, 0.05)' }}>
-                Created by <a className='text-reset fw-bold' href='https://s-uit.pl/'> s-uit.pl </a>in 2022
+                Created by <a className='text-reset fw-bold' href='https://iffective.it/'> iffective.it </a>in 2022
             </div>
         </MDBFooter>
     );

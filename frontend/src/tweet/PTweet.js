@@ -2,7 +2,7 @@ import {MDBCol, MDBIcon, MDBRow} from "mdb-react-ui-kit";
 
 export default function PTweet(props) {
     return (
-        <MDBRow className="text-center tweet-public">
+        <MDBRow className={"text-center " + props.className}>
             <MDBCol>
                 <MDBIcon far icon="comment-alt" size="lg" className="pe-1" />{props.public.reply_count}
             </MDBCol>

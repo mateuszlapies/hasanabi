@@ -16,6 +16,8 @@ body {
 
 #body {
   min-height: 100vh;
+  background: white;
+  padding: 4rem 1rem 1rem;
 }
 
 #background {
@@ -34,11 +36,6 @@ code {
   width: 100%;
   position: fixed !important;
   z-index: 99;
-}
-
-.content {
-  padding: 4rem 1rem 1rem;
-  background: white;
 }
 
 .twitch-icon {
@@ -86,4 +83,8 @@ code {
 
 .tweet-public {
   padding-top: 1rem;
+}
+
+.tweet-text {
+  margin-bottom: 0 !important;
 }

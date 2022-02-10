@@ -1,3 +1,3 @@
-export default function StatusContext() {
-    useContext()
-}
+import {useContext} from "react";
+
+export const StatusContext = useContext(undefined);
