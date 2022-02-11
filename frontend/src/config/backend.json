@@ -2,16 +2,16 @@
   "prod": {
     "twitch": "https://hasanabi.tv/bighas-backend/twitch/",
     "twitter": "https://hasanabi.tv/bighas-backend/twitter/",
-    "instagram": "https://hasanabi.tv/bighas-backend/"
+    "embedded": "hasanabi.tv"
   },
   "stage": {
     "twitch": "https://localhost/bighas-backend/twitch/",
     "twitter": "https://localhost/bighas-backend/twitter/",
-    "instagram": "https://hasanabi.tv/bighas-backend/"
+    "embedded": "localhost"
   },
   "dev": {
     "twitch": "http://localhost:8080/twitch/",
     "twitter": "http://localhost:8080/twitter/",
-    "instagram": "http://localhost:8080/"
+    "embedded": "localhost"
   }
 }

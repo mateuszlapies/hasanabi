@@ -11,17 +11,18 @@ export default function Base(props) {
     let [status, setStatus] = useState();
 
     useEffect(() => {
-        fetch(Conf.twitch + "profile")
-            .then(r => r.json())
-            .then(j => setProfile(j));
+        if(!profile)
+            fetch(Conf.twitch + "profile")
+                .then(r => r.json())
+                .then(j => setProfile(j));
 
         fetch(Conf.twitch + "status")
             .then(r => r.ok ? r.json() : setError(true))
             .then(j => setStatus(j));
-    }, [props]);
+    }, [props, profile]);
 
     let image = () => {
-        if(status && profile && !error) {
+        if(profile && !error) {
             return <img id="background" src={profile.offline_image_url} alt="offline"/>
         }
     }

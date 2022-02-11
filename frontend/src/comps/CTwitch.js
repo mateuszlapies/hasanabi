@@ -1,17 +1,11 @@
-import {useEffect, useState} from "react";
-import {Conf} from "../config/Config";
+import {useContext, useEffect, useState} from "react";
 import {MDBCard, MDBCardBody, MDBCollapse} from "mdb-react-ui-kit";
+import {StatusContext} from "../contexts/StatusContext";
 
-export default function CTwitch(props) {
-    let [status, setStatus] = useState();
+export default function CTwitch() {
+    let status = useContext(StatusContext);
     let [twitch, setTwitch] = useState();
     let [element, setElement] = useState();
-
-    useEffect(() => {
-        fetch(Conf.twitch + "status")
-            .then(r => r.json())
-            .then(j => setStatus(j));
-    }, [props]);
 
     useEffect(() => {
         if(!element && status && status.type === "live") {

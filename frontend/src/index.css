@@ -59,6 +59,11 @@ code {
   aspect-ratio: 16 / 9;
 }
 
+.twitch-main {
+  width: 100%;
+  height: 100%;
+}
+
 .collapse-el {
   height: fit-content;
 }
@@ -87,4 +92,33 @@ code {
 
 .tweet-text {
   margin-bottom: 0 !important;
+}
+
+.twitch-modal {
+  padding: 0 !important;
+}
+
+.twitch-close {
+  top: 0;
+  right: 0;
+  position: absolute;
+}
+
+.twitch-close-container {
+  position: relative;
+}
+
+.twitch-row {
+  height: 100vh;
+}
+
+.twitch-col {
+  padding-left: .25rem !important;
+  padding-right: .25rem !important;
+}
+
+.banished {
+  padding: 0;
+  height: 100vh;
+  border-radius: 0 !important;
 }

@@ -1,3 +1,3 @@
-import {useContext} from "react";
+import {createContext} from "react";
 
-export const StatusContext = useContext(undefined);
+export const StatusContext = createContext(undefined);
