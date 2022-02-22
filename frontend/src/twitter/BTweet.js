@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {Conf} from "../config/Config";
+import {Api} from "../config/Config";
 import {MDBCol, MDBRow, MDBTypography} from "mdb-react-ui-kit";
 
 export default function BTweet(props) {
@@ -8,7 +8,7 @@ export default function BTweet(props) {
 
     useEffect(() => {
         if(props.tweet.attachments)
-            fetch(Conf.twitter + "media?id=" + props.tweet.id + "&ids=" + props.tweet.attachments.media_keys.join(","))
+            fetch(Api.twitter + "media?id=" + props.tweet.id + "&ids=" + props.tweet.attachments.media_keys.join(","))
                 .then(r => r.ok ? r.json() : setError(true))
                 .then(j => setMedia(j))
     }, [props])

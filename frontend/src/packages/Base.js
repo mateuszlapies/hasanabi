@@ -1,7 +1,7 @@
 import Header from "./Header";
 import Footer from "./Footer";
 import {MDBContainer} from "mdb-react-ui-kit";
-import {Conf} from "../config/Config";
+import {Api} from "../config/Config";
 import {useEffect, useState} from "react";
 import {StatusContext} from "../contexts/StatusContext";
 
@@ -12,11 +12,11 @@ export default function Base(props) {
 
     useEffect(() => {
         if(!profile)
-            fetch(Conf.twitch + "profile")
+            fetch(Api.twitch + "profile")
                 .then(r => r.json())
                 .then(j => setProfile(j));
 
-        fetch(Conf.twitch + "status")
+        fetch(Api.twitch + "status")
             .then(r => r.ok ? r.json() : setError(true))
             .then(j => setStatus(j));
     }, [props, profile]);

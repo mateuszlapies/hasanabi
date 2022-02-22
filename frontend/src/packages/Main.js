@@ -1,8 +1,8 @@
 import Base from "./Base";
 import {MDBCol, MDBRow} from "mdb-react-ui-kit";
-import CTwitch from "../comps/CTwitch";
-import CTwitter from "../comps/CTwitter";
-import CRatio from "../comps/CRatio";
+import CTwitch from "../twitch/CTwitch";
+import CTwitter from "../twitter/CTwitter";
+import CRatio from "../twitter/CRatio";
 
 export default function Main() {
     return (

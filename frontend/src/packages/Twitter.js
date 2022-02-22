@@ -1,11 +1,11 @@
 import {useEffect, useRef, useState} from "react";
-import {Conf} from "../config/Config";
+import {Api} from "../config/Config";
 import {MDBCard, MDBCardBody, MDBCardFooter, MDBCardHeader, MDBCol, MDBRow, MDBSpinner} from "mdb-react-ui-kit";
 import useOnScreen from "../helpers/useOnScreen";
 import Base from "./Base";
-import ITweet from "../tweet/ITweet";
-import BTweet from "../tweet/BTweet";
-import PTweet from "../tweet/PTweet";
+import ITweet from "../twitter/ITweet";
+import BTweet from "../twitter/BTweet";
+import PTweet from "../twitter/PTweet";
 
 export default function Twitter() {
     let ref = useRef();
@@ -19,7 +19,7 @@ export default function Twitter() {
     useEffect(() => {
         if(!state.last && isVisible) {
             let page = state.page + 1;
-            fetch(Conf.twitter + "tweets?page=" + page)
+            fetch(Api.twitter + "tweets?page=" + page)
                 .then(r => r.json())
                 .then(j => {
                     setState({

@@ -1,12 +1,12 @@
 import {useEffect, useState} from "react";
-import {Conf} from "../config/Config";
+import {Api} from "../config/Config";
 import {MDBCol, MDBRow, MDBTypography} from "mdb-react-ui-kit";
 
 export default function ITweet(props) {
     let [profile, setProfile] = useState();
     useEffect(() => {
         if(props.profile)
-            fetch(Conf.twitter + "profile/" + props.profile)
+            fetch(Api.twitter + "profile/" + props.profile)
                 .then(r => r.json())
                 .then(j => setProfile(j));
     }, [props]);

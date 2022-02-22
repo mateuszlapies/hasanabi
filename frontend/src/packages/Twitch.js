@@ -11,18 +11,22 @@ import {
     MDBRow
 } from "mdb-react-ui-kit";
 import Base from "./Base";
-import {useEffect, useState} from "react";
-import {Conf} from "../config/Config";
+import {useEffect, useRef, useState} from "react";
+import {Api} from "../config/Config";
+import TwitchGraph from "../twitch/TwitchGraph";
 
 export default function Twitch() {
+    let [hide, setHide] = useState(true);
     let [status, setStatus] = useState();
     let [twitch, setTwitch] = useState();
     let [element, setElement] = useState();
 
+    let graphRef = useRef();
+
     useEffect(() => {
         if(!status)
-            fetch(Conf.twitch + "status")
-                .then(r => r.json())
+            fetch(Api.twitch + "status")
+                .then(r => r.ok ? r.json() : setStatus(undefined))
                 .then(j => setStatus(j));
     })
 
@@ -43,12 +47,12 @@ export default function Twitch() {
         }
     }, [status, twitch, element]);
 
-    let show = () => {
-        return status && status.type === "live"
+    let show = (s, h) => {
+        return !h && s && s.type === "live"
     }
 
-    let display = () => {
-        if(show())
+    let display = (s, h) => {
+        if(show(s, h))
             return ""
         else
             return " d-none"
@@ -56,7 +60,10 @@ export default function Twitch() {
 
     return (
         <Base>
-            <MDBModal show={show()} className={"twitch-modal" + display()} size="fullscreen">
+            <div className="twitch" ref={graphRef}>
+                <TwitchGraph container={graphRef}/>
+            </div>
+            <MDBModal show={show(status, hide)} className={"twitch-modal" + display(status, hide)} size="fullscreen">
                 <MDBModalBody className="twitch-modal">
                     <MDBRow className="twitch-row">
                         <MDBCol size="8" className="twitch-col">
@@ -65,7 +72,7 @@ export default function Twitch() {
                         <MDBCol size="2" className="twitch-col">
                             <iframe id="twitch-chat-embed"
                                     title="twitch-chat"
-                                    src={"https://www.twitch.tv/embed/hasanabi/chat?parent=" + Conf.embedded}
+                                    src={"https://www.twitch.tv/embed/hasanabi/chat?parent=" + Api.embedded}
                                     height="100%"
                                     width="100%"/>
                         </MDBCol>
@@ -75,7 +82,7 @@ export default function Twitch() {
                                     <div className="twitch-close-container">
                                         <div className="text-center"><MDBIcon fas icon="gavel" className="me-2" />Banished chat</div>
                                         <div className="twitch-close">
-                                            <MDBBtn className='btn-close' color='none' onClick={() => {setStatus({type: undefined})}}/>
+                                            <MDBBtn className='btn-close' color='none' onClick={() => {setHide(true)}}/>
                                         </div>
                                     </div>
                                 </MDBCardHeader>
