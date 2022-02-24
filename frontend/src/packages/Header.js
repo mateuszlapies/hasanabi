@@ -10,6 +10,7 @@ import HTwitch from "../headers/HTwitch";
 import HTwitter from "../headers/HTwitter";
 import HInstagram from "../headers/HInstagram";
 import {useState} from "react";
+import {Env} from "../config/Config";
 
 export default function Header() {
     let [show, setShow] = useState(false);
@@ -32,6 +33,13 @@ export default function Header() {
                                 <MDBIcon fas icon="dog" className="me-1 fa-lg" />Studio
                             </MDBNavbarLink>
                         </MDBNavbarItem>
+                        {Env !== "prod" && (
+                            <MDBNavbarItem>
+                                <MDBNavbarLink>
+                                    <MDBIcon fas icon="terminal" className="me-1" />{Env}
+                                </MDBNavbarLink>
+                            </MDBNavbarItem>
+                        )}
                     </MDBNavbarNav>
                     <MDBNavbarNav right fullWidth={false} className='mr-auto mb-2 mb-lg-0'>
                         <HTwitch/>

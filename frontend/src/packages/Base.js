@@ -1,6 +1,6 @@
 import Header from "./Header";
 import Footer from "./Footer";
-import {MDBContainer} from "mdb-react-ui-kit";
+import {MDBContainer, MDBScrollbar} from "mdb-react-ui-kit";
 import {Api} from "../config/Config";
 import {useEffect, useState} from "react";
 import {StatusContext} from "../contexts/StatusContext";
@@ -30,11 +30,13 @@ export default function Base(props) {
     return (
         <StatusContext.Provider value={status}>
             <Header/>
-            {image()}
-            <MDBContainer id="body">
-                {props.children}
-            </MDBContainer>
-            <Footer/>
+            <MDBScrollbar wheelSpeed={0.25}>
+                {image()}
+                <MDBContainer id="body">
+                    {props.children}
+                </MDBContainer>
+                <Footer/>
+            </MDBScrollbar>
         </StatusContext.Provider>
     )
 }

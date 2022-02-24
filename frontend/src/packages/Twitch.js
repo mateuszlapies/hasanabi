@@ -5,7 +5,9 @@ import {
     MDBCardFooter,
     MDBCardHeader,
     MDBCol,
-    MDBIcon, MDBInputGroup, MDBInputGroupElement,
+    MDBIcon,
+    MDBInputGroup,
+    MDBInputGroupElement,
     MDBModal,
     MDBModalBody,
     MDBRow
@@ -16,11 +18,12 @@ import {Api} from "../config/Config";
 import TwitchGraph from "../twitch/TwitchGraph";
 
 export default function Twitch() {
-    let [hide, setHide] = useState(true);
+    let [hide, setHide] = useState(false);
     let [status, setStatus] = useState();
     let [twitch, setTwitch] = useState();
     let [element, setElement] = useState();
-
+    let [pets, setPets] = useState(false);
+    let [twitchChat, setTwitchChat] = useState(false);
     let graphRef = useRef();
 
     useEffect(() => {
@@ -58,33 +61,70 @@ export default function Twitch() {
             return " d-none"
     }
 
+    let vid = (p, c) => {
+        if(p && c)
+            return "twitch-vid-3";
+        else if(p || c)
+            return "twitch-vid-2";
+        return "twitch-vid-1";
+    }
+
     return (
         <Base>
-            <div className="twitch" ref={graphRef}>
-                <TwitchGraph container={graphRef}/>
-            </div>
+            <MDBRow>
+                <MDBCol>
+                    <span className="float-end p-2">
+                        <MDBBtn outline className="twitch-color" onClick={() => setHide(false)}>Watch & Chat</MDBBtn>
+                    </span>
+                </MDBCol>
+            </MDBRow>
+            <MDBRow>
+                <MDBCol>
+                    <div className="twitch" ref={graphRef}>
+                        <TwitchGraph container={graphRef}/>
+                    </div>
+                </MDBCol>
+            </MDBRow>
             <MDBModal show={show(status, hide)} className={"twitch-modal" + display(status, hide)} size="fullscreen">
-                <MDBModalBody className="twitch-modal">
-                    <MDBRow className="twitch-row">
-                        <MDBCol size="8" className="twitch-col">
+                <MDBModalBody className="twitch-modal position-relative">
+                    <div className="position-absolute twitch-watch m-1">
+                        <MDBBtn size="sm" className="twitch-color m-1" outline onClick={() => setHide(!hide)}>Close</MDBBtn>
+                        <div hidden={!twitchChat} className="twitch-btn">
+                            <MDBBtn size="sm" className="twitch-color m-1" outline onClick={() => setTwitchChat(!twitchChat)}>Chat</MDBBtn>
+                        </div>
+                        <div hidden={!pets} className="twitch-btn">
+                            <MDBBtn size="sm" className="twitch-color m-1" outline onClick={() => setPets(!pets)}>Pets</MDBBtn>
+                        </div>
+                    </div>
+                    <div className="twitch-row">
+                        <div className={"twitch-watch-column " + vid(pets, twitchChat)}>
                             <div id="twitch-stream-embed" className="twitch-main"/>
-                        </MDBCol>
-                        <MDBCol size="2" className="twitch-col">
+                        </div>
+                        <div className={"position-relative twitch-watch-column " + (twitchChat ? "twitch-chat-hid" : "twitch-chat")}>
+                            <div className="twitch-chat-min" onClick={() => setTwitchChat(!twitchChat)}>
+                                <MDBIcon fas icon="chevron-right" />
+                            </div>
                             <iframe id="twitch-chat-embed"
                                     title="twitch-chat"
                                     src={"https://www.twitch.tv/embed/hasanabi/chat?parent=" + Api.embedded}
                                     height="100%"
                                     width="100%"/>
-                        </MDBCol>
-                        <MDBCol size="2" className="twitch-col">
+                        </div>
+                        <div className={"twitch-watch-column " + (pets ? "twitch-chat-hid" : "twitch-chat")}>
                             <MDBCard className="banished">
                                 <MDBCardHeader>
-                                    <div className="twitch-close-container">
-                                        <div className="text-center"><MDBIcon fas icon="gavel" className="me-2" />Banished chat</div>
-                                        <div className="twitch-close">
-                                            <MDBBtn className='btn-close' color='none' onClick={() => {setHide(true)}}/>
-                                        </div>
-                                    </div>
+                                    <MDBRow>
+                                        <MDBCol>
+                                            <div className="text-center">
+                                                <MDBIcon fas icon="paw" className="me-2" />Pets
+                                            </div>
+                                        </MDBCol>
+                                        <MDBCol size="1">
+                                            <div onClick={() => setPets(!pets)}>
+                                                <MDBIcon fas icon="chevron-right" />
+                                            </div>
+                                        </MDBCol>
+                                    </MDBRow>
                                 </MDBCardHeader>
                                 <MDBCardBody>
 
@@ -96,8 +136,8 @@ export default function Twitch() {
                                     </MDBInputGroup>
                                 </MDBCardFooter>
                             </MDBCard>
-                        </MDBCol>
-                    </MDBRow>
+                        </div>
+                    </div>
                 </MDBModalBody>
             </MDBModal>
         </Base>
