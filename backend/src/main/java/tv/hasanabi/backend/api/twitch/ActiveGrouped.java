@@ -1,4 +1,4 @@
-package tv.hasanabi.backend.nosql.objects.twitch;
+package tv.hasanabi.backend.api.twitch;
 
 import org.springframework.data.annotation.Id;
 

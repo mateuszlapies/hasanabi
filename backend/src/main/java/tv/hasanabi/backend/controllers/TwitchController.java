@@ -8,12 +8,11 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
-import tv.hasanabi.backend.api.twitch.Profile;
+import tv.hasanabi.backend.api.twitch.*;
 import tv.hasanabi.backend.nosql.objects.twitch.Active;
-import tv.hasanabi.backend.nosql.objects.twitch.ActiveGrouped;
-import tv.hasanabi.backend.nosql.objects.twitch.ActiveGroupedCounter;
 import tv.hasanabi.backend.nosql.repos.twitch.RepoActive;
 
+import java.util.Date;
 import java.util.List;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
@@ -37,9 +36,22 @@ public class TwitchController {
         return ResponseEntity.ok(repoActive.getFirstByOrderByTimestampDesc());
     }
 
+    @GetMapping("brush")
+    private ResponseEntity<Brush> Brush() {
+        MatchOperation filter = match(new Criteria("type").ne(null));
+        GroupOperation group = group("title")
+                .min("timestamp").as("timestamp")
+                .max("viewer_count").as("viewers");
+        SortOperation sort = sort(Sort.Direction.ASC, "timestamp");
+        Aggregation aggregation = newAggregation(filter, group, sort);
+        AggregationResults<ActiveGroupedBrush> result = mongoTemplate.aggregate(aggregation, "active", ActiveGroupedBrush.class);
+        return ResponseEntity.ok(new Brush(result.getMappedResults()));
+    }
+
     @GetMapping("timeline")
-    private ResponseEntity<List<ActiveGrouped>> Timeline() {
-        MatchOperation firstFilter = match(new Criteria("type").ne(null));
+    private ResponseEntity<List<ActiveGrouped>> Timeline(@RequestParam(required = false, defaultValue = "0") long after, @RequestParam(required = false, defaultValue = "0") long before) {
+        MatchOperation firstFilter = match(Criteria.where("type").ne(null));
+        MatchOperation dateFilter = after > 0 && before > 0 ? match(Criteria.where("timestamp").gte(new Date(after)).andOperator(Criteria.where("timestamp").lte(new Date(before)))) : match(new Criteria());
         GroupOperation firstGroup = group("title")
                 .max("timestamp").as("timestamp_max")
                 .min("timestamp").as("timestamp_min")
@@ -47,7 +59,7 @@ public class TwitchController {
                 .avg("viewer_count").as("viewer_count_avg")
                 .min("viewer_count").as("viewer_count_min");
         SortOperation firstSort = sort(Sort.Direction.ASC, "timestamp_min");
-        Aggregation firstAggregation = newAggregation(firstFilter, firstGroup, firstSort);
+        Aggregation firstAggregation = newAggregation(firstFilter, dateFilter, firstGroup, firstSort);
         AggregationResults<ActiveGrouped> firstResult =
                 mongoTemplate.aggregate(firstAggregation, "active", ActiveGrouped.class);
         firstResult.getMappedResults().forEach(e -> {
@@ -55,7 +67,7 @@ public class TwitchController {
             GroupOperation secondGroup = group("viewer_count")
                     .first("viewer_count").as("value").count().as("count");
             SortOperation secondSort = sort(Sort.Direction.DESC, "value");
-            Aggregation secondAggregation = newAggregation(secondFilter, secondGroup, secondSort);
+            Aggregation secondAggregation = newAggregation(secondFilter, dateFilter, secondGroup, secondSort);
             AggregationResults<ActiveGroupedCounter> secondResult =
                     mongoTemplate.aggregate(secondAggregation, "active", ActiveGroupedCounter.class);
             e.vp_data = secondResult.getMappedResults();

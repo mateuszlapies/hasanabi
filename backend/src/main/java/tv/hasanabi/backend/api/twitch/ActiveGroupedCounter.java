@@ -1,4 +1,4 @@
-package tv.hasanabi.backend.nosql.objects.twitch;
+package tv.hasanabi.backend.api.twitch;
 
 public class ActiveGroupedCounter {
     public int value;
