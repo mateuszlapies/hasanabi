@@ -17,6 +17,12 @@ export default function Header() {
 
     return (
         <MDBNavbar expand='lg' dark bgColor='dark' className="header">
+            {Env !== "prod" && (
+                <div className="position-absolute m-3 env">
+                    <MDBIcon fas icon="terminal" size="sm" className="me-1" />
+                    <strong>{Env}</strong>
+                </div>
+            )}
             <MDBContainer>
                 <MDBNavbarBrand href='/'>HasanAbi.tv</MDBNavbarBrand>
                 <MDBNavbarToggler
@@ -33,13 +39,6 @@ export default function Header() {
                                 <MDBIcon fas icon="dog" className="me-1 fa-lg" />Studio
                             </MDBNavbarLink>
                         </MDBNavbarItem>
-                        {Env !== "prod" && (
-                            <MDBNavbarItem>
-                                <MDBNavbarLink>
-                                    <MDBIcon fas icon="terminal" className="me-1" />{Env}
-                                </MDBNavbarLink>
-                            </MDBNavbarItem>
-                        )}
                     </MDBNavbarNav>
                     <MDBNavbarNav right fullWidth={false} className='mr-auto mb-2 mb-lg-0'>
                         <HTwitch/>

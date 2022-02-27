@@ -11,22 +11,23 @@ export default function ITweet(props) {
                 .then(j => setProfile(j));
     }, [props]);
 
-    if(profile) {
-        return (
-            <MDBRow className="tweet-header">
-                <MDBCol>
-                    <img src={profile.profile_image_url} alt="profile_picture" className="me-3 rounded-circle shadow-3-strong" />
-                    <a className="text-reset font-weight-bold" href={"https://twitter.com/" + profile.username} target="_blank" rel="noreferrer">
-                        {profile.name}
-                    </a>
-                </MDBCol>
-                <MDBCol>
-                    <MDBTypography tag="small" className="float-end">
-                        {new Date(props.posted.replace("+00", "-08")).toLocaleDateString()} {new Date(props.posted.replace("+00", "-08")).toLocaleTimeString()}
-                    </MDBTypography>
-                </MDBCol>
-            </MDBRow>
-        )
-    }
-    return <></>
+    return (
+        <MDBRow className="tweet-header">
+            <MDBCol>
+                {profile && (
+                    <>
+                        <img src={profile.profile_image_url} alt="profile_picture" className="me-3 rounded-circle shadow-3-strong" />
+                        <a className="text-reset font-weight-bold" href={"https://twitter.com/" + profile.username} target="_blank" rel="noreferrer">
+                            {profile.name}
+                        </a>
+                    </>
+                )}
+            </MDBCol>
+            <MDBCol>
+                <MDBTypography tag="span" className={"float-end " + (props.xsmall ? "text-x-sm" : "text-sm")}>
+                    {new Date(props.posted).toLocaleDateString()} {new Date(props.posted).toLocaleTimeString()}
+                </MDBTypography>
+            </MDBCol>
+        </MDBRow>
+    )
 }

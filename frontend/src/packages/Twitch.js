@@ -15,7 +15,8 @@ import {
 import Base from "./Base";
 import {useEffect, useRef, useState} from "react";
 import {Api} from "../config/Config";
-import TwitchGraph from "../twitch/TwitchGraph";
+import ViewsGraph from "../twitch/ViewsGraph";
+import TimeGraph from "../twitch/TimeGraph";
 
 export default function Twitch() {
     let [hide, setHide] = useState(false);
@@ -24,7 +25,8 @@ export default function Twitch() {
     let [element, setElement] = useState();
     let [pets, setPets] = useState(false);
     let [twitchChat, setTwitchChat] = useState(false);
-    let graphRef = useRef();
+    let viewsRef = useRef();
+    let timeRef = useRef();
 
     useEffect(() => {
         if(!status)
@@ -74,26 +76,35 @@ export default function Twitch() {
             <MDBRow>
                 <MDBCol>
                     <span className="float-end p-2">
-                        <MDBBtn outline className="twitch-color" onClick={() => setHide(false)}>Watch & Chat</MDBBtn>
+                        <MDBBtn outline className="twitch-color-dark" onClick={() => setHide(false)}>Watch & Chat</MDBBtn>
                     </span>
                 </MDBCol>
             </MDBRow>
             <MDBRow>
                 <MDBCol>
-                    <div className="twitch" ref={graphRef}>
-                        <TwitchGraph container={graphRef}/>
+                    <div className="twitch" ref={viewsRef}>
+                        <ViewsGraph container={viewsRef}/>
+                    </div>
+                    <div className="twitch-time" ref={timeRef}>
+                        <TimeGraph container={timeRef}/>
                     </div>
                 </MDBCol>
             </MDBRow>
             <MDBModal show={show(status, hide)} className={"twitch-modal" + display(status, hide)} size="fullscreen">
-                <MDBModalBody className="twitch-modal position-relative">
+                <MDBModalBody className="twitch-modal position-relative bg-white">
                     <div className="position-absolute twitch-watch m-1">
-                        <MDBBtn size="sm" className="twitch-color m-1" outline onClick={() => setHide(!hide)}>Close</MDBBtn>
+                        <MDBBtn size="sm" className={"m-1 " + (pets && twitchChat ? "twitch-color-light" : "twitch-color-dark")} outline onClick={() => setHide(!hide)}>
+                            Close
+                        </MDBBtn>
                         <div hidden={!twitchChat} className="twitch-btn">
-                            <MDBBtn size="sm" className="twitch-color m-1" outline onClick={() => setTwitchChat(!twitchChat)}>Chat</MDBBtn>
+                            <MDBBtn size="sm" className={"m-1 " + (pets && twitchChat ? "twitch-color-light" : "twitch-color-dark")} outline onClick={() => setTwitchChat(!twitchChat)}>
+                                Chat
+                            </MDBBtn>
                         </div>
                         <div hidden={!pets} className="twitch-btn">
-                            <MDBBtn size="sm" className="twitch-color m-1" outline onClick={() => setPets(!pets)}>Pets</MDBBtn>
+                            <MDBBtn size="sm" className={"m-1 " + (pets && twitchChat ? "twitch-color-light" : "twitch-color-dark")} outline onClick={() => setPets(!pets)}>
+                                Pets
+                            </MDBBtn>
                         </div>
                     </div>
                     <div className="twitch-row">

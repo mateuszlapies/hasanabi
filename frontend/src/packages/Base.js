@@ -30,7 +30,7 @@ export default function Base(props) {
     return (
         <StatusContext.Provider value={status}>
             <Header/>
-            <MDBScrollbar wheelSpeed={0.25}>
+            <MDBScrollbar wheelSpeed={0.5}>
                 {image()}
                 <MDBContainer id="body">
                     {props.children}

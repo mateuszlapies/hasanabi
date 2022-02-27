@@ -1,4 +1,4 @@
-import {MDBFooter, MDBIcon} from "mdb-react-ui-kit";
+import {MDBFooter, MDBIcon, MDBTooltip} from "mdb-react-ui-kit";
 
 export default function Footer() {
     return (
@@ -27,8 +27,13 @@ export default function Footer() {
                         <div className='col-md-3 col-lg-2 col-xl-2 mx-auto mb-4'>
                             <h6 className='text-uppercase fw-bold mb-4'>Social media</h6>
                             <p>
-                                <a href='https://www.instagram.com/hasandpiker' className='text-reset'>
-                                    <MDBIcon fab icon='instagram' className='me-2' />Instagram
+                                <a href='https://www.twitter.com/hasanthehun' className='text-reset'>
+                                    <MDBIcon fab icon='twitter' className='me-2' />Twitter
+                                </a>
+                            </p>
+                            <p>
+                                <a href='https://www.youtube.com/hasanabi' className='text-reset'>
+                                    <MDBIcon fab icon="youtube" className='me-2' />Youtube
                                 </a>
                             </p>
                             <p>
@@ -37,13 +42,8 @@ export default function Footer() {
                                 </a>
                             </p>
                             <p>
-                                <a href='https://www.twitter.com/hasanthehun' className='text-reset'>
-                                    <MDBIcon fab icon='twitter' className='me-2' />Twitter
-                                </a>
-                            </p>
-                            <p>
-                                <a href='https://www.youtube.com/hasanabi' className='text-reset'>
-                                    <MDBIcon fab icon="youtube" className='me-2' />Youtube
+                                <a href='https://www.instagram.com/hasandpiker' className='text-reset'>
+                                    <MDBIcon fab icon='instagram' className='me-2' />Instagram
                                 </a>
                             </p>
                         </div>
@@ -59,9 +59,13 @@ export default function Footer() {
                                 </a>
                             </p>
                             <p>
-                                <MDBIcon far icon="envelope" className="me-2"/>Fan page email
+                                <MDBIcon far icon="envelope" className="me-2"/>Creator
                             </p>
                             <p>
+                                <a href='https://twitter.com/MateuszLapies' className='text-reset'>
+                                    @mateuszlapies
+                                </a>
+                                <span className="m-1">/</span>
                                 <a href='mailto:contact@hasanabi.tv' className='text-reset'>
                                     contact@hasanabi.tv
                                 </a>
@@ -73,6 +77,17 @@ export default function Footer() {
 
             <div className='text-center p-4' style={{ backgroundColor: 'rgba(0, 0, 0, 0.05)' }}>
                 Created by <a className='text-reset fw-bold' href='https://iffective.it/'> iffective.it </a>in 2022
+                <span className="m-1">-</span>
+                <MDBTooltip tag='a' title={
+                    <>
+                        <p>Support</p>
+                        This website has been created for fun.
+                        However, it is hosted on my own infrastructure.
+                        Therefore, if you like it, and you want to support it then contact me so we will find a good way to do it.
+                    </>
+                }>
+                    Support me
+                </MDBTooltip>
             </div>
         </MDBFooter>
     );

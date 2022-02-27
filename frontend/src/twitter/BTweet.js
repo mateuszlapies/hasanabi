@@ -46,7 +46,7 @@ export default function BTweet(props) {
         <>
             <MDBRow>
                 <MDBCol className={props.className}>
-                    <MDBTypography className="tweet-text">
+                    <MDBTypography tag="span" className="tweet-text">
                         {fixText(props.tweet)}
                     </MDBTypography>
                 </MDBCol>
