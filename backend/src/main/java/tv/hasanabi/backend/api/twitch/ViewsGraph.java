@@ -5,10 +5,10 @@ import org.springframework.data.annotation.Id;
 import java.util.Date;
 import java.util.List;
 
-public class ActiveGrouped {
+public class ViewsGraph {
     @Id
     public String title;
-    public List<ActiveGroupedCounter> vp_data;
+    public List<ViewsGraphCounter> vp_data;
     public Date timestamp_min;
     public Date timestamp_max;
     public int viewer_count_min;

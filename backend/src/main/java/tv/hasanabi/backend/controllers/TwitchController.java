@@ -12,6 +12,8 @@ import tv.hasanabi.backend.api.twitch.*;
 import tv.hasanabi.backend.nosql.objects.twitch.Active;
 import tv.hasanabi.backend.nosql.repos.twitch.RepoActive;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
@@ -44,12 +46,12 @@ public class TwitchController {
                 .max("viewer_count").as("viewers");
         SortOperation sort = sort(Sort.Direction.ASC, "timestamp");
         Aggregation aggregation = newAggregation(filter, group, sort);
-        AggregationResults<ActiveGroupedBrush> result = mongoTemplate.aggregate(aggregation, "active", ActiveGroupedBrush.class);
+        AggregationResults<ViewsGraphBrush> result = mongoTemplate.aggregate(aggregation, "active", ViewsGraphBrush.class);
         return ResponseEntity.ok(new Brush(result.getMappedResults()));
     }
 
-    @GetMapping("timeline")
-    private ResponseEntity<List<ActiveGrouped>> Timeline(@RequestParam(required = false, defaultValue = "0") long after, @RequestParam(required = false, defaultValue = "0") long before) {
+    @GetMapping("viewsgraph")
+    private ResponseEntity<List<ViewsGraph>> getViewsGraph(@RequestParam(required = false, defaultValue = "0") long after, @RequestParam(required = false, defaultValue = "0") long before) {
         MatchOperation firstFilter = match(Criteria.where("type").ne(null));
         MatchOperation dateFilter = after > 0 && before > 0 ? match(Criteria.where("timestamp").gte(new Date(after)).andOperator(Criteria.where("timestamp").lte(new Date(before)))) : match(new Criteria());
         GroupOperation firstGroup = group("title")
@@ -60,19 +62,34 @@ public class TwitchController {
                 .min("viewer_count").as("viewer_count_min");
         SortOperation firstSort = sort(Sort.Direction.ASC, "timestamp_min");
         Aggregation firstAggregation = newAggregation(firstFilter, dateFilter, firstGroup, firstSort);
-        AggregationResults<ActiveGrouped> firstResult =
-                mongoTemplate.aggregate(firstAggregation, "active", ActiveGrouped.class);
+        AggregationResults<ViewsGraph> firstResult =
+                mongoTemplate.aggregate(firstAggregation, "active", ViewsGraph.class);
         firstResult.getMappedResults().forEach(e -> {
             MatchOperation secondFilter = match(new Criteria("title").is(e.title));
             GroupOperation secondGroup = group("viewer_count")
                     .first("viewer_count").as("value").count().as("count");
             SortOperation secondSort = sort(Sort.Direction.DESC, "value");
             Aggregation secondAggregation = newAggregation(secondFilter, dateFilter, secondGroup, secondSort);
-            AggregationResults<ActiveGroupedCounter> secondResult =
-                    mongoTemplate.aggregate(secondAggregation, "active", ActiveGroupedCounter.class);
+            AggregationResults<ViewsGraphCounter> secondResult =
+                    mongoTemplate.aggregate(secondAggregation, "active", ViewsGraphCounter.class);
             e.vp_data = secondResult.getMappedResults();
         });
         return ResponseEntity.ok(firstResult.getMappedResults());
+    }
+
+    @GetMapping("timegraph")
+    private ResponseEntity<List<TimeGraph>> getTimeGraph() {
+        MatchOperation filter = match(Criteria.where("type").ne(null)
+                .andOperator(Criteria.where("timestamp").gte(Instant.now().minus(7, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS))));
+        ProjectionOperation project = project()
+                .andExpression("dateToString('%Y-%m-%d', timestamp)").as("date");
+        GroupOperation group = group("date").count().as("data");
+        ProjectionOperation time = project()
+                .andExpression("_id").as("date")
+                .andExpression("data * 10 / 3600").as("time");
+        SortOperation sort = sort(Sort.Direction.ASC, "date");
+        Aggregation aggregation = newAggregation(filter, project, group, time, sort);
+        return ResponseEntity.ok(mongoTemplate.aggregate(aggregation, "active", TimeGraph.class).getMappedResults());
     }
 
     @GetMapping("profile")

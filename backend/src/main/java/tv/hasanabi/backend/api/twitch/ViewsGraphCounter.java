@@ -1,6 +1,6 @@
 package tv.hasanabi.backend.api.twitch;
 
-public class ActiveGroupedCounter {
+public class ViewsGraphCounter {
     public int value;
     public int count;
 }

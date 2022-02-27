@@ -8,14 +8,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "twitter")
+@ConfigurationProperties(prefix = "twitter.api")
 public class TwitterConfig {
-    private String api;
+    private String bearer_token;
 
     @Bean("twitter")
-    WebClient twitchWebClient() {
+    WebClient twitterWebClient() {
         return WebClient.builder()
-                .baseUrl(api)
+                .baseUrl("https://api.twitter.com/2/")
+                .defaultHeader("Authorization", String.format("Bearer %s", bearer_token))
                 .build();
     }
 }
