@@ -1,12 +1,19 @@
 package tv.hasanabi.twitter.services;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.LimitOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import tv.hasanabi.twitter.api.Data;
 import tv.hasanabi.twitter.api.objects.Feed;
 import tv.hasanabi.twitter.api.objects.User;
+import tv.hasanabi.twitter.nosql.objects.Owned;
 import tv.hasanabi.twitter.nosql.objects.Ratio;
 import tv.hasanabi.twitter.nosql.objects.Tweet;
 import tv.hasanabi.twitter.nosql.repos.RepoOwned;
@@ -19,6 +26,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
+
 @Service
 public class TwitterService {
     private final User user;
@@ -26,15 +35,16 @@ public class TwitterService {
     private final RepoRatio repoRatio;
     private final RepoOwned repoOwned;
     private final WebClient webClient;
+    private final MongoTemplate mongoTemplate;
     private final DateTimeFormatter formatter;
 
-    TwitterService(RepoTweet repoTweet, RepoRatio repoRatio, RepoOwned repoOwned, WebClient webClient) {
+    TwitterService(RepoTweet repoTweet, RepoRatio repoRatio, RepoOwned repoOwned, WebClient webClient, MongoTemplate mongoTemplate) {
         this.repoTweet = repoTweet;
         this.repoRatio = repoRatio;
         this.repoOwned = repoOwned;
         this.webClient = webClient;
-
-        formatter = DateTimeFormatter
+        this.mongoTemplate = mongoTemplate;
+        this.formatter = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
             .withZone(ZoneId.of("UTC"));
 
@@ -67,17 +77,60 @@ public class TwitterService {
         } while (feed != null && feed.meta.next_token != null);
     }
 
-    //@Scheduled(fixedRate = 86400000, initialDelay = 5000)
-    private void ratio() throws InterruptedException {
+    private final Aggregation aggregation = newAggregation(sort(Sort.Direction.DESC, "created_at"), limit(10));
+
+    @Scheduled(fixedRate = 600000, initialDelay = 60000)
+    private void updateRatioed() {
+        AggregationResults<Ratio> results = mongoTemplate.aggregate(aggregation, "ratio", Ratio.class);
+        List<Ratio> ratios = results.getMappedResults();
+        if(ratios.size() > 0) {
+            List<String> ids = new ArrayList<>();
+            ratios.forEach(e -> {
+                if (!ids.contains(e.ratio_post.id))
+                    ids.add(e.ratio_post.id);
+                if (!ids.contains(e.original_post.id))
+                    ids.add(e.original_post.id);
+            });
+            Hashtable<String, Feed> tweets = getTweets(ids);
+            ratios.forEach((e -> {
+                boolean changed = false;
+                Feed rp = tweets.get(e.ratio_post.id);
+                if (rp != null) {
+                    e.ratio_post = rp;
+                    changed = true;
+                }
+                Feed op = tweets.get(e.original_post.id);
+                if (op != null) {
+                    e.original_post = op;
+                    changed = true;
+                }
+                if (changed)
+                    repoRatio.save(e);
+            }));
+        }
+    }
+
+    @Scheduled(fixedRate = 600000, initialDelay = 120000)
+    private void updateOwned() {
+        AggregationResults<Owned> results = mongoTemplate.aggregate(aggregation, "owned", Owned.class);
+        List<String> ids = results.getMappedResults().stream().map(e -> e.id).collect(Collectors.toList());
+        if(ids.size() > 0)
+            getTweets(ids).values().forEach(e -> repoOwned.save(new Owned(e)));
+    }
+
+    @Scheduled(fixedRate = 86400000, initialDelay = 5000)
+    private void ratio() {
         List<Feed> feedList = new ArrayList<>();
         Data<List<Feed>> ratios = new Data<>();
         List<String> ratioIds = new ArrayList<>();
         do {
             String next_token = ratios.meta != null ? String.format("&next_token=%s", ratios.meta.next_token) : "";
-            ratios = Objects.requireNonNull(webClient.get().uri(String.format("tweets/search/recent?query=ratio -ratio'd from:hasanthehun -to:hasanthehun is:reply" +
-                            "&max_results=100&expansions=author_id&tweet.fields=public_metrics,created_at,referenced_tweets&start_time=%s%s", formatter.format(Instant.now().minusSeconds(86400)), next_token))
-                    .retrieve().bodyToMono(new ParameterizedTypeReference<Data<List<Feed>>>() {
-                    }).block());
+            ratios = Objects.requireNonNull(webClient.get().uri(String.format("tweets/search/recent" +
+                    "?query=ratio -ratio'd from:hasanthehun is:reply&tweet.fields=public_metrics,created_at" +
+                    "&expansions=author_id&sort_order=relevancy&max_results=100&start_time=%s%s",
+                    formatter.format(Instant.now().minusSeconds(86400)), next_token))
+                .retrieve().bodyToMono(new ParameterizedTypeReference<Data<List<Feed>>>() {
+            }).block());
             if(ratios.meta.result_count > 0) {
                 feedList.addAll(ratios.data);
                 ratios.data.forEach(i -> {
@@ -86,7 +139,6 @@ public class TwitterService {
                     }
                 });
             }
-            Thread.sleep(1000);
         } while(ratios.meta.next_token != null);
         if(ratioIds.size() > 0) {
             Hashtable<String, Feed> referenced = getTweets(ratioIds);
@@ -98,36 +150,19 @@ public class TwitterService {
         }
     }
 
-    //@Scheduled(fixedRate = 86400000, initialDelay = 10000)
-    private void owned() throws InterruptedException {
-        List<Feed> feedList = new ArrayList<>();
+    @Scheduled(fixedRate = 86400000, initialDelay = 10000)
+    private void owned() {
         Data<List<Feed>> owning = new Data<>();
-        List<String> ownedIds = new ArrayList<>();
         do {
             String next_token = owning.meta != null ? String.format("&next_token=%s", owning.meta.next_token) : "";
-
-            owning = Objects.requireNonNull(webClient.get().uri(String.format("tweets/search/recent?query=-ratio from:hasanthehun -to:hasanthehun is:reply" +
-                            "&max_results=100&expansions=author_id&tweet.fields=public_metrics,created_at,referenced_tweets&start_time=%s%s", formatter.format(Instant.now().minusSeconds(86400)), next_token))
-                    .retrieve().bodyToMono(new ParameterizedTypeReference<Data<List<Feed>>>() {
-                    }).block());
-            if(owning.meta.result_count > 0) {
-                feedList.addAll(owning.data);
-                owning.data.forEach(i -> {
-                    if (i.referenced_tweet != null && !ownedIds.contains(i.referenced_tweet)) {
-                        ownedIds.add(i.referenced_tweet);
-                    }
-                });
-            }
-            Thread.sleep(1000);
+            owning = Objects.requireNonNull(webClient.get().uri(String.format("tweets/search/recent" +
+                    "?query=ratio -ratio'd ( to:hasanthehun OR @hasanthehun )&tweet.fields=public_metrics,created_at" +
+                    "&expansions=author_id&sort_order=relevancy&max_results=100&start_time=%s%s",
+                    formatter.format(Instant.now().minusMillis(86400000)), next_token))
+                .retrieve().bodyToMono(new ParameterizedTypeReference<Data<List<Feed>>>() {
+            }).block());
+            owning.data.forEach(e -> repoOwned.save(new Owned(e)));
         } while(owning.meta.next_token != null);
-        if(ownedIds.size() > 0) {
-            Hashtable<String, Feed> referenced = getTweets(ownedIds);
-            for (Feed feed : feedList) {
-                if (feed.referenced_tweet != null) {
-                    repoOwned.save(new Ratio(feed, referenced.get(feed.referenced_tweet)));
-                }
-            }
-        }
     }
 
     private Hashtable<String, Feed> getTweets(List<String> ids) {
